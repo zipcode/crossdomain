@@ -40,7 +40,7 @@ var dispatcher = (function () {
 
   var dispatcher = {
     post: function (target, request) {
-      if (!(target instanceof Window)) {
+      if (target.postMessage === void 0) {
         throw new Error("Bad method parameter for target.");
       }
       if (typeof request != "string") {
@@ -126,7 +126,7 @@ var dispatcher = (function () {
       /* Handle promises.  This is a bit of special casing.  It doesn't make sense
        * to serialize these, but we can connect the remote promise to our local one
        * instead. */
-      if (response.data.then !== void 0) {
+      if ((typeof response.data == "object") && response.data.then !== void 0) {
         var promise = response.data;
         response.data = void 0; /* Just some defensive coding */
         promise.then(function (result) {
@@ -159,4 +159,22 @@ document.addEventListener("DOMContentLoaded", function(event) {
   dispatcher.register("error", function () {
     throw new Error("This always errors");
   });
+
+  var input = document.getElementsByTagName("input")[0];
+  dispatcher.register("update", function (text) {
+    input.value = text;
+  });
+
+  var target;
+  var iframe = document.getElementsByTagName("iframe")[0];
+  if (iframe) {
+    target = iframe.contentWindow;
+  } else if (window !== window.parent) {
+    target = window.parent;
+  }
+
+  input.addEventListener("input", function (event) {
+    dispatcher.post(target, "update", input.value);
+  })
+
 });
