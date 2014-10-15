@@ -7,32 +7,14 @@
  * requests.  Make sure you're okay with that, or start origin checking.
  */
 
-var Dispatcher = (function () {
+var dispatcher = (function () {
   var instance;
   var callbacks = {};
   var methods = {};
 
-  function Dispatcher() {
-    if (this === void 0) {
-      return Dispatcher.instance();
-    }
-    if (instance !== void 0) {
-      throw new Error("Dispatcher initialized twice. Use Dispatcher.instance() instead of 'new'.");
-    }
-
-    window.addEventListener("message", this.handle);
-  }
-
-  Dispatcher.instance = function () {
-    if (instance === void 0) {
-      instance = new Dispatcher();
-    }
-    return instance;
-  };
-
-  Dispatcher.prototype = {
+  var dispatcher = {
     post: function (target, request) {
-      if (!target instanceof Window) {
+      if (!(target instanceof Window)) {
         throw new Error("Bad method parameter for target.");
       }
       if (typeof request != "string") {
@@ -119,12 +101,12 @@ var Dispatcher = (function () {
     }
   }
 
-  return Dispatcher;
+  window.addEventListener("message", dispatcher.handle);
+
+  return dispatcher;
 })();
 
 document.addEventListener("DOMContentLoaded", function(event) {
-  var dispatcher = new Dispatcher();
-
   dispatcher.register("echo", function () {
     return Array.prototype.splice.call(arguments,0);
   });
